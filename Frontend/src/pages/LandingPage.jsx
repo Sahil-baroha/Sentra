@@ -14,6 +14,15 @@ export const LandingPage = () => {
                     <button>Login</button>
                 </div>
             </nav>
+            <div className='landingMainContainer'>
+                <div>
+                    <h1><span style={{color:'#137fd2'}}>Connect</span> with your Loved Ones</h1>
+                    <p>Your Space to Meet, Talk, and Feel Together</p>
+                </div>
+                <div>
+                    <img src="../src/utils/images/LMC_img.png" alt="LMC_img" />
+                </div>
+            </div>
         </div>
     )
 }

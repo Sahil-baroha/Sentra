@@ -17,3 +17,11 @@
     font-size: 1.8rem;
     font-weight: 500;
 }
+.landingPageContainer nav .navList {
+    display: flex;
+    gap:1.5rem;
+    cursor: pointer;
+}
+.landingMainContainer > div:nth-child(1){
+    
+}
