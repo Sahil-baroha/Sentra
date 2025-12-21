@@ -14,7 +14,7 @@ const login = async (req, res) => {
         if (!user) {
             return res.status(httpStatus.NOT_FOUND).json({ message: "User Not Found !" })
         }
-        if (bcrypt.compare(password, user.password)) {
+        if (await bcrypt.compare(password, user.password)) {
             let token = jwt.sign(
                 { id: user._id, username: user.username },  // payload
                 process.env.JWT_SECRET,                     // secret
@@ -22,7 +22,7 @@ const login = async (req, res) => {
             );
             user.token = token
             await user.save();
-            return res.status(200).json({ message: "Login Successful !" })
+            return res.status(200).json({ token, message: "Login Successful!" });
         }
     } catch (error) {
         res.status(500).json({ message: `Something went Wrong ! : ${error}` })
@@ -44,7 +44,7 @@ const register = async (req, res) => {
             username: username,
             password: hashedPassword
         })
-        NewUser.save()
+        await NewUser.save()
 
         res.status(httpStatus.CREATED).json({ message: "New user Registered Sucessfully !" })
 

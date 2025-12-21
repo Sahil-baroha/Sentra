@@ -18,7 +18,7 @@ const Murl = process.env.MONGO_URL
 app.use(cors())
 app.use(express.json({limit:"40kb"}))
 app.use(express.urlencoded({limit:"40kb",extended:true}))
-app.use("/api/v0",userRoutes)
+app.use("/api/v1/users",userRoutes)
 
 // 1. Open the door (server listening)
 const server = createServer(app);
@@ -42,6 +42,6 @@ app.get("/",(req,res)=>{
 
 
 
-    server.listen(8000,()=>{
+    server.listen(PORT,()=>{
         console.log(`Server is Listening On PORT : ${PORT}`)
     });

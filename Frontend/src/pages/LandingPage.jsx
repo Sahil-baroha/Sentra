@@ -1,5 +1,7 @@
 import React from 'react'
 import "../App.css"
+import { Link } from "react-router-dom";
+import Limg from "../utils/images/LMC_img.png"
 export const LandingPage = () => {
     return (
 
@@ -18,9 +20,12 @@ export const LandingPage = () => {
                 <div>
                     <h1><span style={{color:'#137fd2'}}>Connect</span> with your Loved Ones</h1>
                     <p>Your Space to Meet, Talk, and Feel Together</p>
+                    <div role='button'>
+                        <Link to={"/auth"}>Get Started</Link>
+                    </div>
                 </div>
                 <div>
-                    <img src="../src/utils/images/LMC_img.png" alt="LMC_img" />
+                    <img src={Limg} />
                 </div>
             </div>
         </div>
