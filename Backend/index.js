@@ -6,7 +6,7 @@ import mongoose from "mongoose"
 import { Server} from "socket.io";
 const app = express()
 import cors from "cors"
-import {ConnectionToSocket} from "./src/controller/SocketManager.js"
+import {connectToSocket} from "./src/controller/SocketManager.js"
 import userRoutes from "./src/routes/users.routes.js"
 
 
@@ -22,7 +22,7 @@ app.use("/api/v1/users",userRoutes)
 
 // 1. Open the door (server listening)
 const server = createServer(app);
-const io = ConnectionToSocket(server)
+const io = connectToSocket(server)
 
 // &  DB connection 
 const connection  = mongoose.connect(Murl).then(()=>{
