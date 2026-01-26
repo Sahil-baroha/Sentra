@@ -65,10 +65,10 @@ export default function VideoMeetComponent() {
     // }
 
     useEffect(() => {
-        console.log("HELLO")
+        console.log("[FRONTEND] Component Mounted. Requesting Permissions...");
         getPermissions();
 
-    })
+    }, [])
 
     let getDislayMedia = () => {
         if (screen) {
@@ -86,19 +86,19 @@ export default function VideoMeetComponent() {
             const videoPermission = await navigator.mediaDevices.getUserMedia({ video: true });
             if (videoPermission) {
                 setVideoAvailable(true);
-                console.log('Video permission granted');
+                console.log('[FRONTEND] Video permission granted');
             } else {
                 setVideoAvailable(false);
-                console.log('Video permission denied');
+                console.log('[FRONTEND] Video permission denied');
             }
 
             const audioPermission = await navigator.mediaDevices.getUserMedia({ audio: true });
             if (audioPermission) {
                 setAudioAvailable(true);
-                console.log('Audio permission granted');
+                console.log('[FRONTEND] Audio permission granted');
             } else {
                 setAudioAvailable(false);
-                console.log('Audio permission denied');
+                console.log('[FRONTEND] Audio permission denied');
             }
 
             if (navigator.mediaDevices.getDisplayMedia) {
@@ -114,10 +114,11 @@ export default function VideoMeetComponent() {
                     if (localVideoref.current) {
                         localVideoref.current.srcObject = userMediaStream;
                     }
+                    console.log("[FRONTEND] Local Media Stream acquired!");
                 }
             }
         } catch (error) {
-            console.log(error);
+            console.log("[FRONTEND] Error getting permissions:", error);
         }
     };
 
@@ -136,9 +137,6 @@ export default function VideoMeetComponent() {
         connectToSocketServer();
 
     }
-
-
-
 
     let getUserMediaSuccess = (stream) => {
         try {
@@ -274,97 +272,102 @@ export default function VideoMeetComponent() {
 
 
     let connectToSocketServer = () => {
+        console.log("[FRONTEND] Connecting to Socket Server:", server_url);
         socketRef.current = io.connect(server_url, { secure: false })
 
         socketRef.current.on('signal', gotMessageFromServer)
 
         socketRef.current.on('connect', () => {
-            socketRef.current.emit('join-call', window.location.href)
+            console.log("[FRONTEND] Socket Connected! ID:", socketRef.current.id);
+            console.log("[FRONTEND] Emitting join-call for Room:", window.location.href);
+            socketRef.current.emit('join-call', { roomId: window.location.href, username: username })
             socketIdRef.current = socketRef.current.id
-
-            socketRef.current.on('chat-message', addMessage)
 
             socketRef.current.on('user-left', (id) => {
                 setVideos((videos) => videos.filter((video) => video.socketId !== id))
             })
 
-            socketRef.current.on('user-joined', (id, clients) => {
-                clients.forEach((socketListId) => {
+            socketRef.current.on('chat-message', addMessage)
+        })
 
-                    connections[socketListId] = new RTCPeerConnection(peerConfigConnections)
-                    // Wait for their ice candidate       
-                    connections[socketListId].onicecandidate = function (event) {
-                        if (event.candidate != null) {
-                            socketRef.current.emit('signal', socketListId, JSON.stringify({ 'ice': event.candidate }))
-                        }
+        socketRef.current.on('user-joined', (id, clients) => {
+            console.log("[FRONTEND] Event: 'user-joined' received. ID:", id, "Clients:", clients);
+            clients.forEach((socketListId) => {
+                if (socketListId === socketIdRef.current) return; // Filter out self
+
+                connections[socketListId] = new RTCPeerConnection(peerConfigConnections)
+                // Wait for their ice candidate       
+                connections[socketListId].onicecandidate = function (event) {
+                    if (event.candidate != null) {
+                        console.log(`[FRONTEND] ICE Candidate generated for ${socketListId}`);
+                        socketRef.current.emit('signal', socketListId, JSON.stringify({ 'ice': event.candidate }))
                     }
+                }
 
-                    // Wait for their video stream
-                    connections[socketListId].onaddstream = (event) => {
-                        console.log("BEFORE:", videoRef.current);
-                        console.log("FINDING ID: ", socketListId);
+                // Wait for their video stream
+                connections[socketListId].onaddstream = (event) => {
+                    console.log(`[FRONTEND] Remote Stream Received from ${socketListId}`);
+                    console.log("BEFORE:", videoRef.current);
+                    console.log("FINDING ID: ", socketListId);
 
-                        let videoExists = videoRef.current.find(video => video.socketId === socketListId);
+                    let videoExists = videoRef.current.find(video => video.socketId === socketListId);
 
-                        if (videoExists) {
-                            console.log("FOUND EXISTING");
+                    if (videoExists) {
+                        console.log("FOUND EXISTING");
 
-                            // Update the stream of the existing video
-                            setVideos(videos => {
-                                const updatedVideos = videos.map(video =>
-                                    video.socketId === socketListId ? { ...video, stream: event.stream } : video
-                                );
-                                videoRef.current = updatedVideos;
-                                return updatedVideos;
-                            });
-                        } else {
-                            // Create a new video
-                            console.log("CREATING NEW");
-                            let newVideo = {
-                                socketId: socketListId,
-                                stream: event.stream,
-                                autoplay: true,
-                                playsinline: true
-                            };
-
-                            setVideos(videos => {
-                                const updatedVideos = [...videos, newVideo];
-                                videoRef.current = updatedVideos;
-                                return updatedVideos;
-                            });
-                        }
-                    };
-
-
-                    // Add the local video stream
-                    if (window.localStream !== undefined && window.localStream !== null) {
-                        connections[socketListId].addStream(window.localStream)
+                        // Update the stream of the existing video
+                        setVideos(videos => {
+                            const updatedVideos = videos.map(video =>
+                                video.socketId === socketListId ? { ...video, stream: event.stream } : video
+                            );
+                            videoRef.current = updatedVideos;
+                            return updatedVideos;
+                        });
                     } else {
-                        let blackSilence = (...args) => new MediaStream([black(...args), silence()])
-                        window.localStream = blackSilence()
-                        connections[socketListId].addStream(window.localStream)
-                    }
-                })
+                        // Create a new video
+                        console.log("CREATING NEW");
+                        let newVideo = {
+                            socketId: socketListId,
+                            stream: event.stream,
+                            autoplay: true,
+                            playsinline: true
+                        };
 
+                        setVideos(videos => {
+                            const updatedVideos = [...videos, newVideo];
+                            videoRef.current = updatedVideos;
+                            return updatedVideos;
+                        });
+                    }
+                };
+
+
+                // Add the local video stream
+                if (window.localStream !== undefined && window.localStream !== null) {
+                    console.log(`[FRONTEND] Adding Local Stream to Connection with ${socketListId}`);
+                    connections[socketListId].addStream(window.localStream)
+                } else {
+                    let blackSilence = (...args) => new MediaStream([black(...args), silence()])
+                    window.localStream = blackSilence()
+                    connections[socketListId].addStream(window.localStream)
+                }
+
+                // Only the User who has just joined will try to connect w/ others
+                // This effectively solves the "Glare" (Race Condition)
                 if (id === socketIdRef.current) {
-                    for (let id2 in connections) {
-                        if (id2 === socketIdRef.current) continue
-
-                        try {
-                            connections[id2].addStream(window.localStream)
-                        } catch (e) { }
-
-                        connections[id2].createOffer().then((description) => {
-                            connections[id2].setLocalDescription(description)
-                                .then(() => {
-                                    socketRef.current.emit('signal', id2, JSON.stringify({ 'sdp': connections[id2].localDescription }))
-                                })
-                                .catch(e => console.log(e))
-                        })
-                    }
+                    console.log(`[FRONTEND] Initiating Offer to ${socketListId} (I am New User)`);
+                    connections[socketListId].createOffer().then((description) => {
+                        connections[socketListId].setLocalDescription(description)
+                            .then(() => {
+                                console.log(`[FRONTEND] Sending Offer to ${socketListId}`);
+                                socketRef.current.emit('signal', socketListId, JSON.stringify({ 'sdp': connections[socketListId].localDescription }))
+                            })
+                            .catch(e => console.log(e))
+                    })
                 }
             })
         })
+
     }
 
     let silence = () => {
