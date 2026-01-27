@@ -1,6 +1,35 @@
-# Environment variables
+# Dependencies
+**/node_modules
+**/.pnpm-store
+
+# Environment Variables
 .env
-.env.*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+!.env.example
+
+# Build Outputs
+**/dist
+**/build
+**/out
+**/coverage
+
+# Verified AI Agents & Editor Configuration
+.agent
+.agent/
+.agents
+.agents/
+.cursor
+.cursor/
+.gemini
+.gemini/
+.opencode
+.opencode/
+.claude
+.claude/
 
 # Logs
 logs
@@ -11,14 +40,12 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
+# IDE & System
 .vscode/*
 !.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
 .idea
 .DS_Store
 *.suo
@@ -26,3 +53,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+thumbs.db
+
+# OS Generated
+Icon?
+ehthumbs.db
