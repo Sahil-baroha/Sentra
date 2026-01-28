@@ -3,7 +3,7 @@ import httpStatus from "http-status";
 import { createContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const server = import.meta.env.VITE_SERVER_URL || "http://localhost:8000";
+const server = import.meta.env.VITE_SERVER_URL || "http://localhost:5000";
 
 const AuthContext = createContext({});
 
