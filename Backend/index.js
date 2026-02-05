@@ -1,3 +1,8 @@
+import dns from 'node:dns';
+
+// Force usage of Google DNS for this Node process
+dns.setServers(['8.8.8.8', '8.8.4.4']);
+
 import "dotenv/config"
 
 import express from "express";
@@ -25,11 +30,11 @@ const server = createServer(app);
 const io = connectToSocket(server)
 
 // &  DB connection 
-const connection = mongoose.connect(Murl).then(() => {
+const connection = mongoose.connect(Murl, {
+    family: 4 // Force IPv4 (very common fix for newer Node versions)
+}).then(() => {
     console.log("DB Connected!")
-}).catch((err) => {
-    console.log(err)
-})
+}).catch(err => console.error("Mongo Error:", err));
 
 
 

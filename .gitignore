@@ -1,6 +1,7 @@
 # Dependencies
 **/node_modules
-**/.pnpm-store
+/Backend/node_modules
+/Backend/.pnpm-store
 
 # Environment Variables
 .env
@@ -13,7 +14,7 @@
 
 # Build Outputs
 **/dist
-**/build
+/Backend/build
 **/out
 **/coverage
 
